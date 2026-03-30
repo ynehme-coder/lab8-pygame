@@ -29,3 +29,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 30-03-2026 13:58
 - **Prompt**: File "c:\Users\Yara\Desktop\Bsc Year 1 25-26\AI for software dev\lab8-pygame\main.py", line 166, in main     draw_overlay(screen, paused, target_fps)     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^   File "c:\Users\Yara\Desktop\Bsc Year 1 25-26\AI for software dev\lab8-pygame\main.py", line 129, in  draw_overlay     controls_surface = font.render(controls_text, True, text_color) KeyboardInterrupt  debug the prohgram so this error stops happeneing
 
+### 30-03-2026 14:38
+- **Prompt**: make the square size random
+
