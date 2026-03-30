@@ -15,8 +15,9 @@ import pygame
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 500
 FPS = 60
-SQUARE_SIZE = 30
-SQUARE_COUNT = 10
+MIN_SQUARE_SIZE = 10
+MAX_SQUARE_SIZE = 100
+SQUARE_COUNT = 30
 MAX_SPEED = 4
 
 BACKGROUND_COLOR = (20, 24, 34)
@@ -24,27 +25,35 @@ BACKGROUND_COLOR = (20, 24, 34)
 
 @dataclass
 class Square:
-	"""Stores square position, velocity, and color."""
+	"""Stores square position, velocity, color, size, and max speed."""
 
 	x: float
 	y: float
 	vx: float
 	vy: float
 	color: tuple[int, int, int]
+	size: int
+	max_speed: float
 
 
 def create_random_square() -> Square:
-	"""Create one square at a random position with random speed and color."""
-	x = random.uniform(0, WINDOW_WIDTH - SQUARE_SIZE)
-	y = random.uniform(0, WINDOW_HEIGHT - SQUARE_SIZE)
-	vx = random.choice([-1, 1]) * random.uniform(1, MAX_SPEED)
-	vy = random.choice([-1, 1]) * random.uniform(1, MAX_SPEED)
+	"""Create one square at a random position with random speed, color, and size.
+	
+	Speed scales inversely with size: size 10 -> speed 190, size 100 -> speed 10.
+	"""
+	size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
+	# Map size to max_speed inversely: small squares are fast, large squares are slow
+	max_speed = 50 - (size - MIN_SQUARE_SIZE) * (50 - 5) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
+	x = random.uniform(0, WINDOW_WIDTH - size)
+	y = random.uniform(0, WINDOW_HEIGHT - size)
+	vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
+	vy = random.choice([-1, 1]) * random.uniform(1, max_speed)
 	color = (
 		random.randint(70, 255),
 		random.randint(70, 255),
 		random.randint(70, 255),
 	)
-	return Square(x=x, y=y, vx=vx, vy=vy, color=color)
+	return Square(x=x, y=y, vx=vx, vy=vy, color=color, size=size, max_speed=max_speed)
 
 
 def random_nudge(square: Square) -> None:
@@ -53,8 +62,8 @@ def random_nudge(square: Square) -> None:
 	square.vy += random.uniform(-0.2, 0.2)
 
 	# Keep speed in a sensible range so movement remains visible and stable.
-	square.vx = max(-MAX_SPEED, min(MAX_SPEED, square.vx))
-	square.vy = max(-MAX_SPEED, min(MAX_SPEED, square.vy))
+	square.vx = max(-square.max_speed, min(square.max_speed, square.vx))
+	square.vy = max(-square.max_speed, min(square.max_speed, square.vy))
 
 
 def update_square(square: Square) -> None:
@@ -67,21 +76,21 @@ def update_square(square: Square) -> None:
 	if square.x <= 0:
 		square.x = 0
 		square.vx *= -1
-	elif square.x + SQUARE_SIZE >= WINDOW_WIDTH:
-		square.x = WINDOW_WIDTH - SQUARE_SIZE
+	elif square.x + square.size >= WINDOW_WIDTH:
+		square.x = WINDOW_WIDTH - square.size
 		square.vx *= -1
 
 	if square.y <= 0:
 		square.y = 0
 		square.vy *= -1
-	elif square.y + SQUARE_SIZE >= WINDOW_HEIGHT:
-		square.y = WINDOW_HEIGHT - SQUARE_SIZE
+	elif square.y + square.size >= WINDOW_HEIGHT:
+		square.y = WINDOW_HEIGHT - square.size
 		square.vy *= -1
 
 
 def draw_square(surface: pygame.Surface, square: Square) -> None:
 	"""Draw one square."""
-	rect = pygame.Rect(int(square.x), int(square.y), SQUARE_SIZE, SQUARE_SIZE)
+	rect = pygame.Rect(int(square.x), int(square.y), square.size, square.size)
 	pygame.draw.rect(surface, square.color, rect)
 
 
@@ -105,11 +114,11 @@ def handle_input(
 			paused = not paused
 		elif event.key == pygame.K_r:
 			squares = [create_random_square() for _ in range(SQUARE_COUNT)]
-		elif event.key == pygame.K_UP:
-			# Higher FPS means smoother/faster updates.
-			target_fps = min(300, target_fps + 10)
-		elif event.key == pygame.K_DOWN:
-			target_fps = max(10, target_fps - 10)
+		# elif event.key == pygame.K_UP:
+		# 	# Higher FPS means smoother/faster updates.
+		# 	target_fps = min(300, target_fps + 10)
+		# elif event.key == pygame.K_DOWN:
+		# 	target_fps = max(10, target_fps - 10)
 
 	# TODO: Add more controls (e.g., C to randomize colors only).
 	return False, paused, target_fps, squares
