@@ -20,3 +20,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 30-03-2026 13:46
 - **Prompt**: implement thid for me
 
+### 30-03-2026 13:49
+- **Prompt**: create a readme file for this project
+
