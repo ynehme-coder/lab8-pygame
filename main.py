@@ -22,6 +22,22 @@ MAX_SPEED = 4
 
 BACKGROUND_COLOR = (20, 24, 34)
 
+# Color scale: dark cherry (small squares) to light cherry (large squares)
+# Both endpoints are lighter than background for visibility
+DARK_CHERRY = (110, 35, 50)      # Darker cherry for small squares
+LIGHT_CHERRY = (255, 120, 140)   # Lighter cherry for large squares
+
+
+def get_color_for_size(size: int) -> tuple[int, int, int]:
+	"""Return a color based on square size: darker for small, lighter for large."""
+	# Normalize size to 0-1 range
+	normalized = (size - MIN_SQUARE_SIZE) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
+	# Interpolate RGB values
+	r = int(DARK_CHERRY[0] + (LIGHT_CHERRY[0] - DARK_CHERRY[0]) * normalized)
+	g = int(DARK_CHERRY[1] + (LIGHT_CHERRY[1] - DARK_CHERRY[1]) * normalized)
+	b = int(DARK_CHERRY[2] + (LIGHT_CHERRY[2] - DARK_CHERRY[2]) * normalized)
+	return (r, g, b)
+
 
 @dataclass
 class Square:
@@ -48,11 +64,7 @@ def create_random_square() -> Square:
 	y = random.uniform(0, WINDOW_HEIGHT - size)
 	vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
 	vy = random.choice([-1, 1]) * random.uniform(1, max_speed)
-	color = (
-		random.randint(70, 255),
-		random.randint(70, 255),
-		random.randint(70, 255),
-	)
+	color = get_color_for_size(size)
 	return Square(x=x, y=y, vx=vx, vy=vy, color=color, size=size, max_speed=max_speed)
 
 
