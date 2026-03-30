@@ -32,3 +32,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 30-03-2026 14:38
 - **Prompt**: make the square size random
 
+### 30-03-2026 14:47
+- **Prompt**: can you make it so that the bigger the square the faster it moves? slowest rate should be 10 fastest should be 190
+
