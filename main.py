@@ -107,7 +107,7 @@ def handle_input(
 			squares = [create_random_square() for _ in range(SQUARE_COUNT)]
 		elif event.key == pygame.K_UP:
 			# Higher FPS means smoother/faster updates.
-			target_fps = min(120, target_fps + 10)
+			target_fps = min(300, target_fps + 10)
 		elif event.key == pygame.K_DOWN:
 			target_fps = max(10, target_fps - 10)
 
