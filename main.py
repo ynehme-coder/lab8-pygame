@@ -85,24 +85,52 @@ def draw_square(surface: pygame.Surface, square: Square) -> None:
 	pygame.draw.rect(surface, square.color, rect)
 
 
-def handle_input(event: pygame.event.Event) -> bool:
-	"""Stub: central place for input handling.
+def handle_input(
+	event: pygame.event.Event,
+	paused: bool,
+	target_fps: int,
+	squares: list[Square],
+) -> tuple[bool, bool, int, list[Square]]:
+	"""Handle one event and return updated app state.
 
-	Returns True when the app should stop running.
+	Returns (should_quit, paused, target_fps, squares).
 	"""
 	if event.type == pygame.QUIT:
-		return True
+		return True, paused, target_fps, squares
 
-	# TODO: Add keyboard controls (pause with SPACE, reset with R, etc.).
-	return False
+	if event.type == pygame.KEYDOWN:
+		if event.key == pygame.K_ESCAPE:
+			return True, paused, target_fps, squares
+		if event.key == pygame.K_SPACE:
+			paused = not paused
+		elif event.key == pygame.K_r:
+			squares = [create_random_square() for _ in range(SQUARE_COUNT)]
+		elif event.key == pygame.K_UP:
+			# Higher FPS means smoother/faster updates.
+			target_fps = min(120, target_fps + 10)
+		elif event.key == pygame.K_DOWN:
+			target_fps = max(10, target_fps - 10)
+
+	# TODO: Add more controls (e.g., C to randomize colors only).
+	return False, paused, target_fps, squares
 
 
-def draw_overlay(surface: pygame.Surface) -> None:
-	"""Stub: draw text or UI overlays.
+def draw_overlay(surface: pygame.Surface, paused: bool, target_fps: int) -> None:
+	"""Draw simple status and control hints."""
+	font = pygame.font.SysFont(None, 24)
+	text_color = (235, 235, 235)
 
-	TODO: Show FPS and instructions in this function.
-	"""
-	_ = surface
+	status_text = "Status: Paused" if paused else "Status: Running"
+	fps_text = f"Target FPS: {target_fps}"
+	controls_text = "SPACE pause/resume | R reset | UP/DOWN speed | ESC quit"
+
+	status_surface = font.render(status_text, True, text_color)
+	fps_surface = font.render(fps_text, True, text_color)
+	controls_surface = font.render(controls_text, True, text_color)
+
+	surface.blit(status_surface, (10, 10))
+	surface.blit(fps_surface, (10, 34))
+	surface.blit(controls_surface, (10, 58))
 
 
 def main() -> None:
@@ -113,22 +141,31 @@ def main() -> None:
 	clock = pygame.time.Clock()
 
 	squares = [create_random_square() for _ in range(SQUARE_COUNT)]
+	paused = False
+	target_fps = FPS
 
 	running = True
 	while running:
 		for event in pygame.event.get():
-			if handle_input(event):
+			should_quit, paused, target_fps, squares = handle_input(
+				event,
+				paused,
+				target_fps,
+				squares,
+			)
+			if should_quit:
 				running = False
 
 		screen.fill(BACKGROUND_COLOR)
 
 		for square in squares:
-			update_square(square)
+			if not paused:
+				update_square(square)
 			draw_square(screen, square)
 
-		draw_overlay(screen)
+		draw_overlay(screen, paused, target_fps)
 		pygame.display.flip()
-		clock.tick(FPS)
+		clock.tick(target_fps)
 
 	pygame.quit()
 
