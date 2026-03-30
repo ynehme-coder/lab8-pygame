@@ -23,3 +23,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 30-03-2026 13:49
 - **Prompt**: create a readme file for this project
 
+### 30-03-2026 13:52
+- **Prompt**: File "c:\Users\Yara\Desktop\Bsc Year 1 25-26\AI for software dev\lab8-pygame\main.py", line 174, in <module>     main()     ~~~~^^   File "c:\Users\Yara\Desktop\Bsc Year 1 25-26\AI for software dev\lab8-pygame\main.py", line 168, in main     clock.tick(target_fps)     ~~~~~~~~~~^^^^^^^^^^^^ KeyboardInterrupt  I keep getting this error HELP
+
