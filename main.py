@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
+from math import sqrt
 
 import pygame
 
@@ -59,7 +60,7 @@ def create_random_square() -> Square:
 	"""
 	size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
 	# Map size to max_speed inversely: small squares are fast, large squares are slow
-	max_speed = 50 - (size - MIN_SQUARE_SIZE) * (50 - 5) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
+	max_speed = 40 - (size - MIN_SQUARE_SIZE) * (40 - 5) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
 	x = random.uniform(0, WINDOW_WIDTH - size)
 	y = random.uniform(0, WINDOW_HEIGHT - size)
 	vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
@@ -77,11 +78,44 @@ def random_nudge(square: Square) -> None:
 	square.vx = max(-square.max_speed, min(square.max_speed, square.vx))
 	square.vy = max(-square.max_speed, min(square.max_speed, square.vy))
 
+def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
+	flee_radius = 140
+	flee_strength = 0.35
+	push_x = 0.0
+	push_y = 0.0
 
-def update_square(square: Square) -> None:
+	small_cx = square.x + square.size / 2
+	small_cy = square.y + square.size / 2
+
+	for pred in all_squares:
+		if pred == square or pred.size <= square.size:
+			continue
+		else:
+			predator_cx = pred.x + pred.size / 2
+			predator_cy = pred.y + pred.size / 2
+
+			dx = small_cx - predator_cx
+			dy = small_cy - predator_cy
+			dist = sqrt(dx**2 + dy**2)
+
+		if dist <= flee_radius:
+			weight = (flee_radius - dist) / flee_radius
+			if dist == 0:
+				continue
+			else:
+				push_x += (dx / dist) * weight
+				push_y += (dy / dist) * weight
+
+	square.vx += push_x * flee_strength
+	square.vy += push_y * flee_strength
+
+
+
+def update_square(square: Square, all_squares: list[Square]) -> None:
 	"""Move square and bounce it on the window borders."""
+	apply_flee_behavior(square, all_squares)
 	random_nudge(square)
-
+	
 	square.x += square.vx
 	square.y += square.vy
 
@@ -181,7 +215,7 @@ def main() -> None:
 
 		for square in squares:
 			if not paused:
-				update_square(square)
+				update_square(square, squares)
 			draw_square(screen, square)
 
 		draw_overlay(screen, paused, target_fps)
