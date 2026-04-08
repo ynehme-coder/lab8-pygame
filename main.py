@@ -71,16 +71,16 @@ def create_random_square() -> Square:
 
 def random_nudge(square: Square) -> None:
 	"""Slightly change direction to create a random-walk feeling."""
-	square.vx += random.uniform(-0.2, 0.2)
-	square.vy += random.uniform(-0.2, 0.2)
+	square.vx += random.uniform(-0.1, 0.1)
+	square.vy += random.uniform(-0.1, 0.1)
 
 	# Keep speed in a sensible range so movement remains visible and stable.
 	square.vx = max(-square.max_speed, min(square.max_speed, square.vx))
 	square.vy = max(-square.max_speed, min(square.max_speed, square.vy))
 
 def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
-	flee_radius = 140
-	flee_strength = 0.35
+	flee_radius = 120
+	flee_strength = 0.8
 	push_x = 0.0
 	push_y = 0.0
 
@@ -98,13 +98,13 @@ def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
 			dy = small_cy - predator_cy
 			dist = sqrt(dx**2 + dy**2)
 
-		if dist <= flee_radius:
-			weight = (flee_radius - dist) / flee_radius
-			if dist == 0:
-				continue
-			else:
-				push_x += (dx / dist) * weight
-				push_y += (dy / dist) * weight
+			if dist <= flee_radius:
+				weight = (flee_radius - dist) / flee_radius
+				if dist == 0:
+					continue
+				else:
+					push_x += (dx / dist) * weight
+					push_y += (dy / dist) * weight
 
 	square.vx += push_x * flee_strength
 	square.vy += push_y * flee_strength
