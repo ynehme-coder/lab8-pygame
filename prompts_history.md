@@ -83,3 +83,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 13-04-2026 14:26
 - **Prompt**: generate the code explorer site for this project
 
+### 13-04-2026 14:26
+- **Prompt**: Generate or refresh a comprehensive code explorer site for the pygame project at c:\Users\Yara\Desktop\Bsc Year 1 25-26\AI for software dev\lab8-pygame. Analyze Python source files and produce/update a single combined-depth HTML dashboard (prefer docs/code_explorer.html) with architecture overview, call/data flow Mermaid diagrams, quality/pattern analysis, and learning-oriented explanations.
+
