@@ -18,8 +18,8 @@ WINDOW_HEIGHT = 500
 FPS = 60
 MIN_SQUARE_SIZE = 10
 MAX_SQUARE_SIZE = 100
-SQUARE_COUNT = 30
-MAX_SPEED = 4
+SQUARE_COUNT = 10
+MAX_SPEED = 2
 
 BACKGROUND_COLOR = (20, 24, 34)
 
@@ -51,6 +51,8 @@ class Square:
 	color: tuple[int, int, int]
 	size: int
 	max_speed: float
+	age: int
+	lifespan: int
 
 
 def create_random_square() -> Square:
@@ -59,14 +61,30 @@ def create_random_square() -> Square:
 	Speed scales inversely with size: size 10 -> speed 190, size 100 -> speed 10.
 	"""
 	size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
+
 	# Map size to max_speed inversely: small squares are fast, large squares are slow
-	max_speed = 40 - (size - MIN_SQUARE_SIZE) * (40 - 5) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
+	max_speed = MAX_SPEED - (size - MIN_SQUARE_SIZE) * (MAX_SPEED - 5) / (MAX_SQUARE_SIZE - MIN_SQUARE_SIZE)
+
 	x = random.uniform(0, WINDOW_WIDTH - size)
 	y = random.uniform(0, WINDOW_HEIGHT - size)
 	vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
 	vy = random.choice([-1, 1]) * random.uniform(1, max_speed)
 	color = get_color_for_size(size)
-	return Square(x=x, y=y, vx=vx, vy=vy, color=color, size=size, max_speed=max_speed)
+
+	# LIFESPAN
+	lifespan = random.randint(120, 600)
+
+	return Square(
+		x=x,
+		y=y,
+		vx=vx,
+		vy=vy,
+		color=color,
+		size=size,
+		max_speed=max_speed,
+		age=0,
+		lifespan=lifespan,
+	)
 
 
 def random_nudge(square: Square) -> None:
@@ -79,8 +97,8 @@ def random_nudge(square: Square) -> None:
 	square.vy = max(-square.max_speed, min(square.max_speed, square.vy))
 
 def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
-	flee_radius = 120
-	flee_strength = 0.8
+	flee_radius = 180
+	flee_strength = 1.5  # slightly stronger so it actually has visible effect
 	push_x = 0.0
 	push_y = 0.0
 
@@ -98,21 +116,42 @@ def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
 			dy = small_cy - predator_cy
 			dist = sqrt(dx**2 + dy**2)
 
-			if dist <= flee_radius:
+			if dist <= flee_radius and dist != 0:
+				# Stronger when closer
 				weight = (flee_radius - dist) / flee_radius
-				if dist == 0:
-					continue
-				else:
-					push_x += (dx / dist) * weight
-					push_y += (dy / dist) * weight
+				
+				# Normalize direction
+				push_x += (dx / dist) * weight
+				push_y += (dy / dist) * weight
 
+	# Normalize accumulated push so multiple predators don't explode velocity
+	total_push = sqrt(push_x**2 + push_y**2)
+	if total_push > 0:
+		push_x /= total_push
+		push_y /= total_push
+
+	# Apply flee force
 	square.vx += push_x * flee_strength
 	square.vy += push_y * flee_strength
 
+	# Clamp to max speed (IMPORTANT)
+	speed = sqrt(square.vx**2 + square.vy**2)
+	if speed > square.max_speed:
+		scale = square.max_speed / speed
+		square.vx *= scale
+		square.vy *= scale
 
 
-def update_square(square: Square, all_squares: list[Square]) -> None:
+
+def update_square(square: Square, all_squares: list[Square]) -> Square:
 	"""Move square and bounce it on the window borders."""
+	
+	# --- LIFE SYSTEM ---
+	square.age += 1
+	if square.age >= square.lifespan:
+		return create_random_square()
+	# -------------------
+
 	apply_flee_behavior(square, all_squares)
 	random_nudge(square)
 	
@@ -132,6 +171,8 @@ def update_square(square: Square, all_squares: list[Square]) -> None:
 	elif square.y + square.size >= WINDOW_HEIGHT:
 		square.y = WINDOW_HEIGHT - square.size
 		square.vy *= -1
+
+	return square
 
 
 def draw_square(surface: pygame.Surface, square: Square) -> None:
@@ -213,10 +254,10 @@ def main() -> None:
 
 		screen.fill(BACKGROUND_COLOR)
 
-		for square in squares:
+		for i, square in enumerate(squares):
 			if not paused:
-				update_square(square, squares)
-			draw_square(screen, square)
+				squares[i] = update_square(square, squares)
+			draw_square(screen, squares[i])
 
 		draw_overlay(screen, paused, target_fps)
 		pygame.display.flip()
