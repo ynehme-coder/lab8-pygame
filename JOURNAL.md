@@ -125,3 +125,14 @@
 - **Hook Version**: 1.02
 - **Date**: 27-04-2026 14:11
 - **Prompt**: generate the architecture documents for this project
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 27-04-2026 14:14
+- **User**: ynehme2007@gmail.com
+- **Prompt**: generate the architecture documents for this project
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Created docs/architecture.md and docs/architecture.html with a module dependency graph, high-level runtime flow graph, function-level call graph, and full primary execution sequence diagram derived from main.py.
+- **Context and Reasons for Changes**: User requested architecture documentation for the local project. The docs capture only traceable behavior from the current codebase and provide both Markdown and static HTML outputs with Mermaid diagrams for readability and portability.

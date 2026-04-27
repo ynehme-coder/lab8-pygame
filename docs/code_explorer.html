@@ -133,7 +133,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
 <header>
   <h1>Code Explorer</h1>
   <span class="file-badge">main.py</span>
-  <p style="margin-top:0.4rem;">Project: lab8-pygame | Focus: runtime flow, quality, and learning guidance for first-year students</p>
+  <p style="margin-top:0.4rem;">Project: lab8-pygame | Focus: runtime flow, behavior tuning, and learning guidance for first-year students</p>
 </header>
 
 <nav class="tab-nav">
@@ -152,10 +152,11 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
       <button class="arch-btn active" onclick="switchArch('callgraph', this)">Call Graph</button>
       <button class="arch-btn" onclick="switchArch('deps', this)">Dependencies</button>
       <button class="arch-btn" onclick="switchArch('fullseq', this)">Full Sequence</button>
-      <button class="arch-btn" onclick="switchArch('seqflee', this)">Flee Behavior</button>
+      <button class="arch-btn" onclick="switchArch('seqflee', this)">Predator Flee</button>
       <button class="arch-btn" onclick="switchArch('seqinput', this)">Input Flow</button>
       <button class="arch-btn" onclick="switchArch('df_squares', this)">Data squares</button>
       <button class="arch-btn" onclick="switchArch('df_square', this)">Data square</button>
+      <button class="arch-btn" onclick="switchArch('df_life', this)">Data life</button>
       <button class="arch-btn" onclick="switchArch('df_paused', this)">Data paused</button>
       <button class="arch-btn" onclick="switchArch('df_fps', this)">Data fps</button>
       <button class="arch-btn" onclick="switchArch('state', this)">Run State</button>
@@ -164,7 +165,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
     <div id="arch-callgraph" class="arch-panel active">
       <div class="diag-title">Function Call Graph</div>
       <div class="diag-container" id="diag-callgraph"></div>
-      <div class="diag-caption">This shows the main function pipeline from setup to per-frame update and draw work.</div>
+      <div class="diag-caption">This shows the main function pipeline from setup through input, lifespan handling, movement, and drawing.</div>
     </div>
 
     <div id="arch-deps" class="arch-panel">
@@ -176,31 +177,37 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
     <div id="arch-fullseq" class="arch-panel">
       <div class="diag-title">Full Runtime Sequence</div>
       <div class="diag-container" id="diag-fullseq"></div>
-      <div class="diag-caption">This sequence tracks one frame from event polling to presentation.</div>
+      <div class="diag-caption">This sequence tracks one frame from event polling through state updates, rendering, and frame pacing.</div>
     </div>
 
     <div id="arch-seqflee" class="arch-panel">
-      <div class="diag-title">Flee Logic Sequence</div>
+      <div class="diag-title">Predator Flee Sequence</div>
       <div class="diag-container" id="diag-seqflee"></div>
-      <div class="diag-caption">This isolates how predator checks produce movement pushes for each square.</div>
+      <div class="diag-caption">This isolates how larger squares contribute repulsion to smaller squares within the flee radius.</div>
     </div>
 
     <div id="arch-seqinput" class="arch-panel">
       <div class="diag-title">Input Handling Sequence</div>
       <div class="diag-container" id="diag-seqinput"></div>
-      <div class="diag-caption">This shows how key events can toggle pause, reset entities, or exit.</div>
+      <div class="diag-caption">This shows how key events toggle pause, reset entities, or exit the loop.</div>
     </div>
 
     <div id="arch-df_squares" class="arch-panel">
       <div class="diag-title">Data Flow squares</div>
       <div class="diag-container" id="diag-df_squares"></div>
-      <div class="diag-caption">The squares list is created, passed around, updated, and rendered every frame.</div>
+      <div class="diag-caption">The squares list is created, passed into input and update logic, then rendered every frame.</div>
     </div>
 
     <div id="arch-df_square" class="arch-panel">
       <div class="diag-title">Data Flow square</div>
       <div class="diag-container" id="diag-df_square"></div>
-      <div class="diag-caption">A single square is generated, nudged, constrained, and drawn on screen.</div>
+      <div class="diag-caption">A single square is generated, nudged, influenced by flee and chase behavior, constrained, and drawn on screen.</div>
+    </div>
+
+    <div id="arch-df_life" class="arch-panel">
+      <div class="diag-title">Data Flow life</div>
+      <div class="diag-container" id="diag-df_life"></div>
+      <div class="diag-caption">Age and lifespan control when a square is replaced with a fresh random one.</div>
     </div>
 
     <div id="arch-df_paused" class="arch-panel">
@@ -212,13 +219,13 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
     <div id="arch-df_fps" class="arch-panel">
       <div class="diag-title">Data Flow target fps</div>
       <div class="diag-container" id="diag-df_fps"></div>
-      <div class="diag-caption">The frame cap is initialized, displayed, and consumed by the game clock.</div>
+      <div class="diag-caption">The frame cap is initialized, displayed, and consumed by the game clock each loop.</div>
     </div>
 
     <div id="arch-state" class="arch-panel">
       <div class="diag-title">Main Loop State</div>
       <div class="diag-container" id="diag-state"></div>
-      <div class="diag-caption">This optional state view helps beginners track loop lifecycle transitions.</div>
+      <div class="diag-caption">This state view helps beginners track setup, running, paused, reset, and exit transitions.</div>
     </div>
   </div>
 </div>
@@ -230,7 +237,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
 
       <div class="pattern-card">
         <div class="pattern-header"><span class="pattern-icon">✅</span><span class="pattern-title">Named Constants for Config</span></div>
-        <div class="pattern-desc">Window size, object count, and speed constraints are centralized as constants so behavior is easy to tune and read.</div>
+        <div class="pattern-desc">Window size, object count, frame rate, and color values are centralized as constants so behavior is easy to tune and read.</div>
         <div class="pattern-layers">
           <div class="layer layer-basics"><span class="layer-label">Basics</span>Change one value to affect all related behavior.</div>
           <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>It reduces scattered magic values and configuration bugs.</div>
@@ -241,7 +248,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
 
       <div class="pattern-card">
         <div class="pattern-header"><span class="pattern-icon">✅</span><span class="pattern-title">Single Purpose Functions</span></div>
-        <div class="pattern-desc">Functions like draw_square, random_nudge, and handle_input have focused jobs and predictable signatures.</div>
+        <div class="pattern-desc">Functions like draw_square, random_nudge, apply_flee_behavior, apply_chase_behavior, and handle_input have focused jobs and predictable signatures.</div>
         <div class="pattern-layers">
           <div class="layer layer-basics"><span class="layer-label">Basics</span>Small functions are easier to test and debug.</div>
           <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>Clear boundaries reduce accidental side effects when changing logic.</div>
@@ -252,7 +259,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
 
       <div class="pattern-card">
         <div class="pattern-header"><span class="pattern-icon">✅</span><span class="pattern-title">Structured Entity Model</span></div>
-        <div class="pattern-desc">Using a dataclass for Square keeps related fields grouped and explicit across update and draw phases.</div>
+        <div class="pattern-desc">Using a dataclass for Square keeps related fields grouped and explicit across update, draw, and lifespan phases.</div>
         <div class="pattern-layers">
           <div class="layer layer-basics"><span class="layer-label">Basics</span>One object holds position, velocity, color, and size.</div>
           <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>Typed fields improve editor hints and reduce wiring mistakes.</div>
@@ -266,8 +273,8 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
       <div class="section-head yellow">Potential Issues</div>
 
       <div class="pattern-card">
-        <div class="pattern-header"><span class="pattern-icon">⚠️</span><span class="pattern-title">Nested Flee Cost Per Frame</span></div>
-        <div class="pattern-desc">Each square checks all other squares in apply_flee_behavior, producing O(n^2) work each frame.</div>
+        <div class="pattern-header"><span class="pattern-icon">⚠️</span><span class="pattern-title">Nested Flee and Chase Cost Per Frame</span></div>
+        <div class="pattern-desc">Each square checks all other squares in apply_flee_behavior and apply_chase_behavior, producing O(n^2) work each frame.</div>
         <div class="pattern-layers">
           <div class="layer layer-basics"><span class="layer-label">Basics</span>More squares can quickly slow frame rate.</div>
           <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>Profiling will show this function dominates runtime as count rises.</div>
@@ -279,7 +286,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
 
       <div class="pattern-card">
         <div class="pattern-header"><span class="pattern-icon">⚠️</span><span class="pattern-title">Gameplay Values Hardcoded Inline</span></div>
-        <div class="pattern-desc">flee_radius and flee_strength are embedded in apply_flee_behavior, making tuning and experiments harder.</div>
+        <div class="pattern-desc">flee_radius, flee_strength, chase_radius, and chase_strength are embedded in behavior functions, making tuning and experiments harder.</div>
         <div class="pattern-layers">
           <div class="layer layer-basics"><span class="layer-label">Basics</span>Students must edit code body to change behavior.</div>
           <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>Inline constants increase risk of inconsistent values after refactor.</div>
@@ -287,6 +294,17 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
         </div>
         <a class="ext-link" href="https://refactoring.guru/fr/smells/magic-numbers">Learn more</a>
         <div class="fix-hint">Promote behavior constants near other top-level config values.</div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-header"><span class="pattern-icon">⚠️</span><span class="pattern-title">Uncached Overlay Rendering</span></div>
+        <div class="pattern-desc">The font and text surfaces are recreated every frame in draw_overlay even though the labels mostly stay the same.</div>
+        <div class="pattern-layers">
+          <div class="layer layer-basics"><span class="layer-label">Basics</span>Repeated work can be avoided when text does not change.</div>
+          <div class="layer layer-eng"><span class="layer-label">Engineering Insight</span>Caching the font or surfaces would reduce per-frame overhead.</div>
+          <div class="layer layer-arch"><span class="layer-label">Architecture Insight</span>Separating static UI from dynamic UI makes rendering cheaper and clearer.</div>
+        </div>
+        <a class="ext-link" href="https://www.pygame.org/docs/ref/font.html">Learn more</a>
       </div>
     </div>
   </div>
@@ -296,7 +314,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
   <div class="card">
     <div class="type-banner">
       <div class="score-big">4 / 5</div>
-      <div class="score-verdict">Strong type hint usage with clear function contracts; one consistency gap is localized.</div>
+      <div class="score-verdict">Strong type hint usage with clear function contracts; the main gap is one untyped helper and a few runtime assumptions.</div>
     </div>
 
     <div class="two-col">
@@ -310,13 +328,17 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
           <div class="pattern-title">Concrete Generic Types</div>
           <div class="pattern-desc">Using <code>list[Square]</code> and <code>tuple[int, int, int]</code> improves precision over vague containers.</div>
         </div>
+        <div class="pattern-card">
+          <div class="pattern-title">Clear Dataclass Shape</div>
+          <div class="pattern-desc">Square exposes explicit numeric fields for position, velocity, color, size, age, lifespan, and max speed.</div>
+        </div>
       </div>
 
       <div>
         <div class="section-head yellow">Type Gaps</div>
         <div class="pattern-card">
-          <div class="pattern-title">Mixed Numeric Intent</div>
-          <div class="pattern-desc">max_speed values come from float math while comments imply integer mappings; documenting intended numeric domain would help.</div>
+          <div class="pattern-title">Untyped Helper</div>
+          <div class="pattern-desc">find_nearest currently omits annotations, so its contract is less explicit than the rest of the module.</div>
         </div>
         <div class="pattern-card">
           <div class="pattern-title">Validation Contract Missing</div>
@@ -333,24 +355,24 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
     <div class="review-layout">
       <div class="review-left">
         <div id="ri-0" class="review-item" onclick="selectReview(0)">
-          <div class="ri-titlerow"><span class="ri-title">Pairwise flee scaling risk</span><span class="badge badge-medium">medium</span></div>
+          <div class="ri-titlerow"><span class="ri-title">Pairwise flee and chase scaling risk</span><span class="badge badge-medium">medium</span></div>
           <div class="ri-note">Correctness and performance degrade as object count grows.</div>
         </div>
         <div id="ri-1" class="review-item" onclick="selectReview(1)">
-          <div class="ri-titlerow"><span class="ri-title">UI hint mismatch for keys</span><span class="badge badge-low">low</span></div>
-          <div class="ri-note">Overlay advertises UP DOWN controls that are disabled.</div>
-        </div>
-        <div id="ri-2" class="review-item" onclick="selectReview(2)">
           <div class="ri-titlerow"><span class="ri-title">Dataclass equality side effect</span><span class="badge badge-medium">medium</span></div>
           <div class="ri-note">Value equality can skip legitimate predator checks.</div>
+        </div>
+        <div id="ri-2" class="review-item" onclick="selectReview(2)">
+          <div class="ri-titlerow"><span class="ri-title">UI hint mismatch for keys</span><span class="badge badge-low">low</span></div>
+          <div class="ri-note">Overlay still advertises UP and DOWN controls that are commented out.</div>
         </div>
         <div id="ri-3" class="review-item" onclick="selectReview(3)">
           <div class="ri-titlerow"><span class="ri-title">Repeated text render each frame</span><span class="badge badge-medium">medium</span></div>
           <div class="ri-note">Font rendering is repeated despite mostly static strings.</div>
         </div>
         <div id="ri-4" class="review-item" onclick="selectReview(4)">
-          <div class="ri-titlerow"><span class="ri-title">Behavior constants are local</span><span class="badge badge-low">low</span></div>
-          <div class="ri-note">Tuning requires editing logic internals.</div>
+          <div class="ri-titlerow"><span class="ri-title">Dead helper is not integrated</span><span class="badge badge-low">low</span></div>
+          <div class="ri-note">find_nearest exists but is never used in the game loop.</div>
         </div>
       </div>
       <div id="review-detail-panel" class="review-right"></div>
@@ -376,16 +398,20 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
       <div>
         <div class="section-head red">Risks</div>
         <div class="perf-card">
-          <div class="perf-title">O n squared Flee Loop</div>
-          <div class="perf-desc">Each update scans all squares, so work scales quadratically with square count.</div>
+          <div class="perf-title">O n squared Behavior Loop</div>
+          <div class="perf-desc">Each update scans all squares twice, so work scales quadratically with square count.</div>
         </div>
         <div class="perf-card">
           <div class="perf-title">Overlay Text Render Cost</div>
           <div class="perf-desc">Status labels are rendered every frame even when text content remains unchanged.</div>
         </div>
+        <div class="perf-card">
+          <div class="perf-title">Replacement Creates New Squares Frequently</div>
+          <div class="perf-desc">Expired squares are replaced with fresh random ones, which is fine at this scale but adds churn during longer runs.</div>
+        </div>
       </div>
     </div>
-    <div style="margin-top:1rem;"><span class="badge-score">3 / 6</span> <span class="score-verdict" style="margin-left:0.6rem;">Main runtime pressure is pairwise flee checks inside the per-frame update path.</span></div>
+    <div style="margin-top:1rem;"><span class="badge-score">3 / 6</span> <span class="score-verdict" style="margin-left:0.6rem;">Main runtime pressure is pairwise flee and chase checks inside the per-frame update path.</span></div>
   </div>
 </div>
 
@@ -396,7 +422,7 @@ pre.snippet { background: #12121e; border-radius: 5px; padding: 0.7rem; font-siz
       <div class="ns-num">1</div>
       <div class="ns-text">
         <a href="https://docs.python.org/3/library/dataclasses.html">Python dataclasses docs</a>
-        <div class="ns-desc">Deepen understanding of model objects and defaults for game entities.</div>
+        <div class="ns-desc">Deepen understanding of model objects, defaults, and equality behavior for game entities.</div>
       </div>
     </div>
     <div class="ns-item">
@@ -451,30 +477,30 @@ function switchArch(name, btn) {
 const reviewItems = [
   {
     id: 0,
-    title: 'Pairwise flee scaling risk',
+    title: 'Pairwise flee and chase scaling risk',
     severity: 'medium',
     snippet: `for pred in all_squares:\n    if pred == square or pred.size <= square.size:\n        continue\n    ...\n    if dist <= flee_radius:\n        push_x += (dx / dist) * weight`,
     shortNote: 'Nested scans create quadratic update cost.',
-    fullExplanation: 'The flee function iterates every square against every other square each frame.\nThis is acceptable at small counts but quickly becomes the dominant cost as entities increase.\nBecause this sits on the hot path, growth can trigger visible frame drops.',
+    fullExplanation: 'The flee and chase functions iterate every square against every other square each frame.\nThis is acceptable at small counts but quickly becomes the dominant cost as entities increase.\nBecause this sits on the hot path, growth can trigger visible frame drops.',
     improvementHint: 'Use a simple spatial hash grid so each square checks only nearby predators.'
   },
   {
     id: 1,
-    title: 'UI hint mismatch for keys',
-    severity: 'low',
-    snippet: `controls_text = "SPACE pause/resume | R reset | UP/DOWN speed | ESC quit"\n\n# elif event.key == pygame.K_UP:\n#     target_fps = min(300, target_fps + 10)`,
-    shortNote: 'Displayed controls do not match active behavior.',
-    fullExplanation: 'The overlay text advertises UP and DOWN key controls, but the related input logic is commented out.\nThis can confuse users and testers because expected behavior does not occur.\nIt is a small UX issue but worth fixing for trust and clarity.',
-    improvementHint: 'Either enable the key handlers or remove UP DOWN from overlay text.'
-  },
-  {
-    id: 2,
     title: 'Dataclass equality side effect',
     severity: 'medium',
     snippet: `if pred == square or pred.size <= square.size:\n    continue`,
     shortNote: 'Value equality can hide a real predator.',
     fullExplanation: 'Dataclass default equality compares field values, not object identity.\nIf two distinct squares share identical fields, pred == square becomes true and skips processing.\nThat can produce subtle and hard-to-reproduce flee behavior differences.',
     improvementHint: 'Use identity comparison with "pred is square" for self checks.'
+  },
+  {
+    id: 2,
+    title: 'UI hint mismatch for keys',
+    severity: 'low',
+    snippet: `controls_text = "SPACE pause/resume | R reset | UP/DOWN speed | ESC quit"\n\n# elif event.key == pygame.K_UP:\n#     target_fps = min(300, target_fps + 10)`,
+    shortNote: 'Displayed controls do not match active behavior.',
+    fullExplanation: 'The overlay text advertises UP and DOWN key controls, but the related input logic is commented out.\nThis can confuse users and testers because expected behavior does not occur.\nIt is a small UX issue but worth fixing for trust and clarity.',
+    improvementHint: 'Either enable the key handlers or remove UP DOWN from overlay text.'
   },
   {
     id: 3,
@@ -487,12 +513,12 @@ const reviewItems = [
   },
   {
     id: 4,
-    title: 'Behavior constants are local',
+    title: 'Dead helper is not integrated',
     severity: 'low',
-    snippet: `def apply_flee_behavior(square, all_squares):\n    flee_radius = 120\n    flee_strength = 0.8`,
-    shortNote: 'Tuning values are hidden inside function body.',
-    fullExplanation: 'The simulation uses inline flee constants that are not visible with other configuration fields.\nThis lowers discoverability for students trying to tune behavior and compare runs.\nMoving them near global settings improves maintainability and experimentation flow.',
-    improvementHint: 'Promote flee constants to top-level config names with comments.'
+    snippet: `def find_nearest(big, small_squares):\n    nearest = None\n    min_dist = float("inf")\n    ...\n    return nearest`,
+    shortNote: 'A helper exists but the loop never calls it.',
+    fullExplanation: 'The find_nearest helper is defined but not used anywhere in the runtime path.\nThat is not a crash bug, but it is dead code that adds noise and can mislead students about the actual architecture.\nIt should be removed or integrated into the behavior system.',
+    improvementHint: 'Either wire the helper into a feature or delete it for clarity.'
   }
 ];
 
@@ -528,14 +554,16 @@ const diagrams = {
     n3 --> n4[Loop frame]
     n4 --> n5[Handle input]
     n4 --> n6[Update square]
-    n6 --> n7[Apply flee]
-    n6 --> n8[Random nudge]
-    n4 --> n9[Draw square]
-    n4 --> n10[Draw overlay]
-    n4 --> n11[Flip display]
-    n4 --> n12[Tick clock]
-    n5 --> n13[Reset squares]
-    n13 --> n3`,
+    n6 --> n7[Age and lifespan]
+    n6 --> n8[Apply flee]
+    n6 --> n9[Apply chase]
+    n6 --> n10[Random nudge]
+    n4 --> n11[Draw square]
+    n4 --> n12[Draw overlay]
+    n4 --> n13[Flip display]
+    n4 --> n14[Tick clock]
+    n5 --> n15[Reset squares]
+    n15 --> n3`,
 
   deps: String.raw`graph LR
     n1[Main py file] --> n2[Pygame module]
@@ -558,7 +586,9 @@ const diagrams = {
     p1->>p3: handle event
     p3-->>p1: state tuple
     p1->>p4: update squares
+    p4->>p4: age and replace expired squares
     p4->>p4: apply flee
+    p4->>p4: apply chase
     p4->>p4: random nudge
     p4-->>p1: moved squares
     p1->>p5: draw frame
@@ -601,10 +631,18 @@ const diagrams = {
   df_square: String.raw`graph TD
     n1[Random spawn] --> n2[Set velocity]
     n2 --> n3[Flee adjust]
-    n3 --> n4[Nudge clamp]
-    n4 --> n5[Move pos]
-    n5 --> n6[Border bounce]
-    n6 --> n7[Rect draw]`,
+    n3 --> n4[Chase adjust]
+    n4 --> n5[Nudge clamp]
+    n5 --> n6[Move pos]
+    n6 --> n7[Border bounce]
+    n7 --> n8[Rect draw]`,
+
+  df_life: String.raw`graph TD
+    n1[Square created] --> n2[Age increments]
+    n2 --> n3{Age >= lifespan?}
+    n3 -->|No| n4[Keep square]
+    n3 -->|Yes| n5[Create replacement]
+    n5 --> n1`,
 
   df_paused: String.raw`graph TD
     n1[Start false] --> n2[Space toggle]
@@ -628,6 +666,9 @@ const diagrams = {
     n2 --> n4: keep running
     n4: Next frame
     n4 --> n2: loop back
+    n4 --> n5: paused
+    n5: Await input
+    n5 --> n2: unpause
     n3: Exit cleanup
     n3 --> [*]`
 };
