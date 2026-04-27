@@ -101,3 +101,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 27-04-2026 14:26
 - **Prompt**: generate the flash quiz site for this project
 
+### 27-04-2026 14:41
+- **Prompt**: analyze this project and produce a light refactoring plan
+
