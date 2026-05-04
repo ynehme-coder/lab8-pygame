@@ -186,10 +186,12 @@ def screen_wrap(square: Square) -> None:
         square.x = -square.size
     elif square.x + square.size < 0:
         square.x = WINDOW_WIDTH
-            if square.y > WINDOW_HEIGHT:
+
+    if square.y > WINDOW_HEIGHT:
         square.y = -square.size
     elif square.y + square.size < 0:
         square.y = WINDOW_HEIGHT
+#########################################
 
 def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
     flee_radius = 180
@@ -267,6 +269,26 @@ def apply_chase_behavior(square: Square, all_squares: list[Square]) -> None:
 
     clamp_velocity(square)  # Behavior unchanged; now uses shared clamp helper.
 
+###Q4
+def check_collision(square1: Square, square2: Square) -> bool:
+
+    rect1 = pygame.Rect(
+        int(square1.x),
+        int(square1.y),
+        square1.size,
+        square1.size
+    )
+
+    rect2 = pygame.Rect(
+        int(square2.x),
+        int(square2.y),
+        square2.size,
+        square2.size
+    )
+
+    return rect1.colliderect(rect2)
+
+##################################################################
 
 def update_square(square: Square, all_squares: list[Square]) -> Square:
     """Move square and bounce it on the window borders."""
@@ -287,8 +309,8 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
     square.x += square.vx
     square.y += square.vy
 
-    # Phase 4: boundary handling extracted for clearer single-purpose logic.
-    bounce_on_walls(square)
+    # Phase 4: (CHANGED FOR EXAM) boundary handling extracted for clearer single-purpose logic.
+    screen_wrap(square)
 
     return square
 
