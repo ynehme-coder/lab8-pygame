@@ -9,4 +9,7 @@ I took inspirationn from teh draw_square and bouncing functions to make this.
 I thought back to the process I used to make the squares die as well as the chase and flee behaviors
 
 ## Q6 and Q7
-I knew they were coming in the exam so I studied how to make them work
+I knew they were coming in the exam so I studied to have a basic idea of how they work. I did not account for warping though
+
+## Q8
+For this I'm going to assume that "the correct speed" means that its moving as fast as it size allows it and not speeding up more than that threshhold. I'm not exactly sure how to implement it so I'm going to give my ideas and assumptions instead. I think I would set a threshold of what is "acceptable" as a speed for a couple of sizes and add a function called in update squares that would check whether the square falls within the right speed boundaries and removing it if not.
