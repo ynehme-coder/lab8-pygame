@@ -12,13 +12,12 @@ from math import sqrt
 
 import pygame
 
-
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 500
 FPS = 60
 MIN_FPS = 10
 MAX_FPS = 120
-MIN_SQUARE_SIZE = 10
+MIN_SQUARE_SIZE = 4
 MAX_SQUARE_SIZE = 100
 SQUARE_COUNT = 45
 MAX_SPEED = 2
@@ -56,7 +55,8 @@ class Square:
     age: int
     lifespan: int
 
-#original create fn
+
+# original create fn
 def create_random_square() -> Square:
     """Create one square at a random position with random speed, color, and size.
 
@@ -91,14 +91,15 @@ def create_random_square() -> Square:
         lifespan=lifespan,
     )
 
-#EXAM Q1
+
+###EXAM Q1
 def create_square(size) -> Square:
     max_speed = MAX_SPEED - (size - MIN_SQUARE_SIZE) * (MAX_SPEED - 5) / (
         MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
     )
 
-    x = size
-    y = size
+    x = random.uniform(0, WINDOW_WIDTH - size)
+    y = random.uniform(0, WINDOW_HEIGHT - size)
     vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
     vy = random.choice([-1, 1]) * random.uniform(1, max_speed)
     color = get_color_for_size(size)
@@ -117,21 +118,24 @@ def create_square(size) -> Square:
         lifespan=lifespan,
     )
 
+
 def square_list() -> list:
     sq_list = []
     for _ in range(5):
         sq_list.append(create_square(25))
-        print("Big Square")
-    
+
     for _ in range(10):
-            sq_list.append(create_square(10))
-            print("Medium Square")
+        sq_list.append(create_square(10))
+
     for _ in range(30):
         sq_list.append(create_square(4))
-        print("Small Square")
+    
     return sq_list
 
-    
+
+
+##############################################
+
 
 def random_nudge(square: Square) -> None:
     """Slightly change direction to create a random-walk feeling."""
@@ -260,7 +264,7 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
     # Keeping phases explicit helps debug frame logic step-by-step.
     square.age += 1
     if square.age >= square.lifespan:
-        return create_random_square()
+        return create_square(square.size)
 
     # Phase 2: behavior forces.
     apply_flee_behavior(square, all_squares)
