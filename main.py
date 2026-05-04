@@ -20,7 +20,7 @@ MIN_FPS = 10
 MAX_FPS = 120
 MIN_SQUARE_SIZE = 10
 MAX_SQUARE_SIZE = 100
-SQUARE_COUNT = 10
+SQUARE_COUNT = 45
 MAX_SPEED = 2
 
 BACKGROUND_COLOR = (20, 24, 34)
@@ -56,7 +56,7 @@ class Square:
     age: int
     lifespan: int
 
-
+#original create fn
 def create_random_square() -> Square:
     """Create one square at a random position with random speed, color, and size.
 
@@ -91,6 +91,47 @@ def create_random_square() -> Square:
         lifespan=lifespan,
     )
 
+#EXAM Q1
+def create_square(size) -> Square:
+    max_speed = MAX_SPEED - (size - MIN_SQUARE_SIZE) * (MAX_SPEED - 5) / (
+        MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
+    )
+
+    x = size
+    y = size
+    vx = random.choice([-1, 1]) * random.uniform(1, max_speed)
+    vy = random.choice([-1, 1]) * random.uniform(1, max_speed)
+    color = get_color_for_size(size)
+
+    lifespan = random.randint(120, 600)
+
+    return Square(
+        x=x,
+        y=y,
+        vx=vx,
+        vy=vy,
+        color=color,
+        size=size,
+        max_speed=max_speed,
+        age=0,
+        lifespan=lifespan,
+    )
+
+def square_list() -> list:
+    sq_list = []
+    for _ in range(5):
+        sq_list.append(create_square(25))
+        print("Big Square")
+    
+    for _ in range(10):
+            sq_list.append(create_square(10))
+            print("Medium Square")
+    for _ in range(30):
+        sq_list.append(create_square(4))
+        print("Small Square")
+    return sq_list
+
+    
 
 def random_nudge(square: Square) -> None:
     """Slightly change direction to create a random-walk feeling."""
@@ -296,7 +337,7 @@ def main() -> None:
     pygame.display.set_caption("Random Moving Squares")
     clock = pygame.time.Clock()
 
-    squares = [create_random_square() for _ in range(SQUARE_COUNT)]
+    squares = square_list()
     paused = False
     target_fps = FPS
 
