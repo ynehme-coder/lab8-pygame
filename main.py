@@ -180,6 +180,17 @@ def bounce_on_walls(square: Square) -> None:
         square.vy *= -1
 
 
+###Q3
+def screen_wrap(square: Square) -> None:
+    if square.x > WINDOW_WIDTH:
+        square.x = -square.size
+    elif square.x + square.size < 0:
+        square.x = WINDOW_WIDTH
+            if square.y > WINDOW_HEIGHT:
+        square.y = -square.size
+    elif square.y + square.size < 0:
+        square.y = WINDOW_HEIGHT
+
 def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
     flee_radius = 180
     flee_strength = 1.5  # slightly stronger so it actually has visible effect
@@ -262,9 +273,11 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
 
     # Phase 1: lifecycle update.
     # Keeping phases explicit helps debug frame logic step-by-step.
+    ######Q2
     square.age += 1
     if square.age >= square.lifespan:
         return create_square(square.size)
+    ####################################
 
     # Phase 2: behavior forces.
     apply_flee_behavior(square, all_squares)
