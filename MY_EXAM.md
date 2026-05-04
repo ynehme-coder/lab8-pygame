@@ -7,3 +7,6 @@ I took inspirationn from teh draw_square and bouncing functions to make this.
 
 ## Q5 Thoughts and process
 I thought back to the process I used to make the squares die as well as the chase and flee behaviors
+
+## Q6 and Q7
+I knew they were coming in the exam so I studied how to make them work

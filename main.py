@@ -21,6 +21,7 @@ MIN_SQUARE_SIZE = 4
 MAX_SQUARE_SIZE = 100
 SQUARE_COUNT = 45
 MAX_SPEED = 2
+TRAIL_LENGTH = 30 #for Q7
 
 BACKGROUND_COLOR = (20, 24, 34)
 
@@ -54,6 +55,10 @@ class Square:
     max_speed: float
     age: int
     lifespan: int
+    #for Q7
+    trail: list[tuple[float, float]]
+    prev_x: float = 0
+    prev_y: float = 0
 
 
 # original create fn
@@ -89,6 +94,7 @@ def create_random_square() -> Square:
         max_speed=max_speed,
         age=0,
         lifespan=lifespan,
+        trail=[]
     )
 
 
@@ -116,6 +122,7 @@ def create_square(size) -> Square:
         max_speed=max_speed,
         age=0,
         lifespan=lifespan,
+        trail=[]
     )
 
 
@@ -182,15 +189,23 @@ def bounce_on_walls(square: Square) -> None:
 
 ###Q3
 def screen_wrap(square: Square) -> None:
-    if square.x > WINDOW_WIDTH:
-        square.x = -square.size
-    elif square.x + square.size < 0:
-        square.x = WINDOW_WIDTH
+    wrapped = False
 
-    if square.y > WINDOW_HEIGHT:
-        square.y = -square.size
-    elif square.y + square.size < 0:
+    if square.x < 0:
+        square.x = WINDOW_WIDTH
+        wrapped = True
+    elif square.x > WINDOW_WIDTH:
+        square.x = 0
+        wrapped = True
+
+    if square.y < 0:
         square.y = WINDOW_HEIGHT
+        wrapped = True
+    elif square.y > WINDOW_HEIGHT:
+        square.y = 0
+        wrapped = True
+
+    
 #########################################
 
 def apply_flee_behavior(square: Square, all_squares: list[Square]) -> None:
@@ -317,7 +332,9 @@ def eat(square: Square, all_squares: list[Square]) -> None:
 
 def update_square(square: Square, all_squares: list[Square]) -> Square:
     """Move square and bounce it on the window borders."""
-
+    #the prev. pos. for Q7 
+    square.prev_x = square.x
+    square.prev_y = square.y
     # Phase 1: lifecycle update.
     # Keeping phases explicit helps debug frame logic step-by-step.
     ######Q2
@@ -331,6 +348,11 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
     apply_chase_behavior(square, all_squares)
 
     eat(square, all_squares)
+    
+    #for Q7
+    square.trail.append(get_square_center(square))
+    if len(square.trail) > TRAIL_LENGTH:
+        square.trail.pop(0)
 
     # Phase 3: position update.
     square.x += square.vx
@@ -346,6 +368,24 @@ def draw_square(surface: pygame.Surface, square: Square) -> None:
     """Draw one square."""
     rect = pygame.Rect(int(square.x), int(square.y), square.size, square.size)
     pygame.draw.rect(surface, square.color, rect)
+    dx = square.x - square.prev_x
+    dy = square.y - square.prev_y
+
+###Q7
+def draw_trail(surface: pygame.Surface, square: Square) -> None:
+    if len(square.trail) < 2:
+        return
+
+    for i in range(len(square.trail) - 1):
+        pygame.draw.line(
+            surface,
+            square.color,
+            square.trail[i],
+            square.trail[i + 1],
+            2,
+        )
+
+#################################################
 
 
 def handle_input(
@@ -424,6 +464,7 @@ def main() -> None:
         for i, square in enumerate(squares):
             if not paused:
                 squares[i] = update_square(square, squares)
+            draw_trail(screen, squares[i])
             draw_square(screen, squares[i])
 
         draw_overlay(screen, paused, target_fps)
