@@ -290,6 +290,23 @@ def check_collision(square1: Square, square2: Square) -> bool:
 
 ##################################################################
 
+###Q5
+
+def eat(square: Square, all_squares: list[Square]) -> None:
+    for other in all_squares[:]:  # copy to avoid list modification issues
+        if other == square:
+            continue
+
+        if check_collision(square, other):
+            if square.size > other.size:
+                all_squares.remove(other)
+                all_squares.append(create_square(other.size))
+            elif other.size > square.size:
+                all_squares.remove(square)
+                all_squares.append(create_square(square.size))
+                return  
+#############################################################################
+
 def update_square(square: Square, all_squares: list[Square]) -> Square:
     """Move square and bounce it on the window borders."""
 
@@ -304,6 +321,8 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
     # Phase 2: behavior forces.
     apply_flee_behavior(square, all_squares)
     apply_chase_behavior(square, all_squares)
+
+    eat(square, all_squares)
 
     # Phase 3: position update.
     square.x += square.vx
