@@ -19,3 +19,6 @@ I basically adapted the wrap function to this program.
 
 ## Q11
 I practiced this beforehand because I thought something similar could come into the exam
+
+## Q12 
+I have, in my main.py file, a flee function that would make the small square run away from the larger ones. I flipped and repurposed this function as well as an  old collision function to make it work
