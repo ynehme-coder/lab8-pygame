@@ -22,6 +22,7 @@ MAX_SQUARE_SIZE = 100
 SQUARE_COUNT = 45
 MAX_SPEED = 2
 TRAIL_LENGTH = 30 #for Q7
+GROWTH_SPEED = 500  # for Q9
 
 BACKGROUND_COLOR = (20, 24, 34)
 
@@ -59,6 +60,12 @@ class Square:
     trail: list[tuple[float, float]]
     prev_x: float = 0
     prev_y: float = 0
+
+    #for Q9
+    growth_start_time: int = 0
+    start_size: int = 0
+    target_size: int = 0
+    is_growing: bool = False
 
 
 # original create fn
@@ -315,11 +322,12 @@ def eat(square: Square, all_squares: list[Square]) -> None:
         if check_collision(square, other):
             if square.size > other.size:
                 #Q6 growth + speed
-                growth = other.size * 0.3
-                square.size = min(MAX_SQUARE_SIZE, int(square.size + growth))
-                square.max_speed = MAX_SPEED - (square.size - MIN_SQUARE_SIZE) * (MAX_SPEED - 5) / (
-                    MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
-                )
+                # Q9 
+                square.start_size = square.size
+                square.target_size = square.size + other.size  # FIXED
+                square.growth_start_time = pygame.time.get_ticks()
+                square.is_growing = True
+                
 
                 all_squares.remove(other)
                 all_squares.append(create_square(other.size))
@@ -348,6 +356,20 @@ def update_square(square: Square, all_squares: list[Square]) -> Square:
     apply_chase_behavior(square, all_squares)
 
     eat(square, all_squares)
+    current_time = pygame.time.get_ticks()
+
+    if square.is_growing:
+        elapsed = current_time - square.growth_start_time
+
+        if elapsed >= GROWTH_SPEED:
+            square.size = square.target_size
+            square.is_growing = False
+        else:
+            progress = elapsed / GROWTH_SPEED
+            square.size = int(
+                square.start_size +
+                (square.target_size - square.start_size) * progress
+            )
     
     #for Q7
     square.trail.append(get_square_center(square))
