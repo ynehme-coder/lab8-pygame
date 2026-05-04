@@ -290,7 +290,7 @@ def check_collision(square1: Square, square2: Square) -> bool:
 
 ##################################################################
 
-###Q5
+###Q5 and Q6
 
 def eat(square: Square, all_squares: list[Square]) -> None:
     for other in all_squares[:]:  # copy to avoid list modification issues
@@ -299,12 +299,20 @@ def eat(square: Square, all_squares: list[Square]) -> None:
 
         if check_collision(square, other):
             if square.size > other.size:
+                #Q6 growth + speed
+                growth = other.size * 0.3
+                square.size = min(MAX_SQUARE_SIZE, int(square.size + growth))
+                square.max_speed = MAX_SPEED - (square.size - MIN_SQUARE_SIZE) * (MAX_SPEED - 5) / (
+                    MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
+                )
+
                 all_squares.remove(other)
                 all_squares.append(create_square(other.size))
             elif other.size > square.size:
+
                 all_squares.remove(square)
                 all_squares.append(create_square(square.size))
-                return  
+                return
 #############################################################################
 
 def update_square(square: Square, all_squares: list[Square]) -> Square:
